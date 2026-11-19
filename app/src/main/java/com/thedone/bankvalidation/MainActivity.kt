@@ -3,45 +3,33 @@ package com.thedone.bankvalidation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.thedone.bankvalidation.ui.theme.BankvalidationTheme
+import androidx.room.Room
+import com.thedone.bankvalidation.data.local.BankDatabase
+import com.thedone.bankvalidation.domain.usecase.CalculateProbabilityOfDefaultUseCase
+import com.thedone.bankvalidation.presentation.ValidationSimulatorScreen
+import com.thedone.bankvalidation.presentation.ValidationViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        val database = Room.databaseBuilder(
+            applicationContext,
+            BankDatabase::class.java,
+            "bank_validation.db"
+        ).build()
+
+
+        // use di
+        val dao = database.loanValidationDao()
+        val calculatePdUseCase = CalculateProbabilityOfDefaultUseCase()
+
+        val viewModel = ValidationViewModel(dao, calculatePdUseCase)
+
+
         setContent {
-            BankvalidationTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            ValidationSimulatorScreen(viewModel = viewModel)
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BankvalidationTheme {
-        Greeting("Android")
-    }
-}
